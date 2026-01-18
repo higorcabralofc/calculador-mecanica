@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Mecânica Higor - FINAL</title>
+    <style>
+        /* Variáveis de Cores e Estilos */
+        :root {
+            --dark-background: #0d2a33;
+            --header-gradient-start: #1A3D43; 
+            --header-gradient-end: #0E3B4E;   
+            --card-background: #1A3D43;     
+            --accent-green-light: #00E6CB;   
+            --accent-green-dark: #00a08e;    
+            --text-color: #E0E6EB;           
+            --input-background: #224D52;    
+            --button-red: #D94848;           
+            --button-red-hover: #b83b3b;
+            --partner-background: #2980B9;   
+            --partner-input-background: #2c3e50;
+            --main-shadow-color: rgba(0, 0, 0, 0.5); 
+            --accent-glow: rgba(0, 230, 203, 0.4); 
+            --transparent-divider: rgba(0, 230, 203, 0.1); 
+        }
+
+        /* Reset Básico e Estilos Globais */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--dark-background);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-y: auto;
+            background-image: radial-gradient(circle at center, rgba(13,42,51,0.8) 0%, rgba(13,42,51,1) 70%);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            background-color: var(--dark-background); 
+            border-radius: 10px;
+            box-shadow: 0 0 20px var(--main-shadow-color);
+        }
+
+        /* Top Bar (Cabeçalho) */
+        .top-bar {
+            background: linear-gradient(90deg, var(--header-gradient-start) 0%, var(--header-gradient-end) 100%);
+            padding: 15px 30px;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 5px 15px var(--main-shadow-color);
+            position: relative; /* Para posicionamento do resumo */
+        }
+        
+        /* NOVO: Estilo da Caixa de Resumo (Flutuante) */
+        .summary-box {
+            position: absolute;
+            top: 100%; 
+            left: 50%;
+            transform: translateX(-50%);
+            width: 300px; 
+            background-color: #2c4f55; /* Cor de fundo do resumo no vídeo */
+            border: 1px solid var(--accent-green-dark);
+            border-radius: 6px;
+            padding: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.6);
+            z-index: 100;
+            opacity: 0; 
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+            pointer-events: none; /* Não interfere nos cliques */
+            text-align: left;
+        }
+
+        .summary-box ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .summary-box li {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85em;
+            padding: 2px 0;
+            color: var(--text-color);
+        }
+
+        .summary-box li.combo-item {
+            font-weight: bold;
+            color: var(--accent-green-light);
+            border-top: 1px dashed var(--transparent-divider);
+            margin-top: 4px;
+            padding-top: 4px;
+        }
+
+        /* Restante do CSS (sem alterações significativas no layout principal) */
+        .logo { font-size: 2.5em; font-weight: bold; color: var(--accent-green-light); text-shadow: 0 0 10px var(--accent-glow); margin-bottom: 10px; letter-spacing: 1px; text-transform: uppercase; }
+        .total-display-top { font-size: 3em; font-weight: bold; color: var(--accent-green-light); text-shadow: 0 0 10px var(--accent-glow); margin-bottom: 10px; letter-spacing: 1px; }
+        .discount-container { display: flex; align-items: center; background-color: var(--partner-background); padding: 5px 15px; border-radius: 5px; margin-bottom: 15px; }
+        .discount-container label { font-size: 0.9em; color: var(--text-color); margin-right: 10px; white-space: nowrap; }
+        .discount-container input[type="number"] { background-color: var(--partner-input-background); border: 1px solid var(--accent-green-dark); color: var(--text-color); padding: 3px 8px; border-radius: 3px; width: 50px; text-align: center; font-size: 0.9em; -moz-appearance: textfield; }
+        .btn-clear { background-color: var(--button-red); color: white; border: none; padding: 10px 25px; border-radius: 5px; font-size: 1.1em; font-weight: bold; cursor: pointer; transition: background-color 0.2s, transform 0.1s; }
+        .main-content { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding: 20px; padding-top: 0; }
+        .section-card { background-color: var(--card-background); border-radius: 8px; padding: 20px 15px; box-shadow: 0 2px 10px var(--main-shadow-color); border: 1px solid var(--accent-green-dark); position: relative; overflow: hidden; }
+        .section-card::before { content: 'OASIS'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-20deg); font-size: 6em; font-weight: bold; color: rgba(0, 230, 203, 0.05); pointer-events: none; z-index: 0; white-space: nowrap; }
+        .section-header { display: flex; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--accent-green-dark); padding-bottom: 10px; position: relative; z-index: 1; }
+        .section-header .icon { width: 24px; height: 24px; margin-right: 10px; background-color: var(--accent-green-light); border-radius: 3px; box-shadow: 0 0 8px var(--accent-glow); }
+        .section-header h2 { font-size: 1.2em; color: var(--accent-green-light); font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+        .item-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed var(--transparent-divider); position: relative; z-index: 1; font-size: 0.9em; }
+        .brinde-tag { color: var(--accent-green-light); font-weight: bold; margin-left: 8px; font-size: 0.9em; text-shadow: 0 0 5px var(--accent-glow); }
+        select { background-color: var(--input-background); color: var(--text-color); border: 1px solid var(--accent-green-dark); padding: 6px 10px; border-radius: 4px; font-size: 0.85em; appearance: none; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2300E6CB%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-6.5%200-12.1%203.2-15.6%208.1-3.5%204.9-3.5%2011.6%200%2016.5l129.5%20164.3c3.5%204.9%209.1%208.1%2015.6%208.1s12.1-3.2%2015.6-8.1L287%2085.9c3.5-4.9%203.6-11.6%200-16.5z%22%2F%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 8px center; background-size: 12px; cursor: pointer; width: 130px; }
+        input[type="checkbox"] { appearance: none; width: 18px; height: 18px; border: 2px solid var(--accent-green-light); border-radius: 4px; background-color: var(--input-background); cursor: pointer; position: relative; }
+        input[type="checkbox"]:checked { background-color: var(--accent-green-light); border-color: var(--accent-green-light); box-shadow: 0 0 8px var(--accent-glow); }
+        input[type="checkbox"]:checked::after { content: '✓'; color: var(--main-dark-bg); font-size: 1.1em; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); line-height: 1; }
+        .quantity-control { display: flex; align-items: center; border-radius: 4px; overflow: hidden; border: 1px solid var(--accent-green-dark); height: 30px; }
+        .quantity-control button { border: none; padding: 5px 10px; font-weight: bold; font-size: 1em; line-height: 1; color: var(--text-color); flex-shrink: 0; height: 100%; }
+        .quantity-control button:first-child { background-color: var(--button-red); }
+        .quantity-control button:last-child { background-color: var(--accent-green-light); }
+        .quantity-control input { width: 30px; text-align: center; border: none; padding: 5px 0; font-weight: bold; color: var(--text-color); background-color: var(--input-background); height: 100%; }
+        footer { text-align: center; margin-top: 20px; font-size: 0.8em; color: rgba(224, 230, 235, 0.6); padding: 10px; background-color: var(--container-bg); border-radius: 0 0 10px 10px; }
+        footer a { color: var(--accent-green-light); text-decoration: none; text-shadow: 0 0 5px var(--accent-glow); }
+        
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="top-bar" id="topBar">
+        <div class="logo">Calculadora ‒ Mecânica Higor</div> 
+
+        <div class="total-display-top" id="totalDisplay">R$ 0,00</div>
+        
+        <div class="discount-container">
+            <label for="discountInput">Parceria (<span id="discountPercentage">30</span>%)</label>
+            <input type="number" id="discountInput" value="30" min="0" max="100" style="display: none;">
+        </div>
+
+        <button id="clearBtn" class="btn-clear">Limpar</button>
+        
+        <div id="summaryBox" class="summary-box">
+            </div>
+    </div>
+
+    <div class="main-content">
+        
+
+<div>
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="icon"></div> <h2>Performance</h2>
+                </div>
+                
+                <div class="item-row">
+                    <span class="item-name">Motor</span>
+                    <div class="item-controls">
+                        <select id="select-Motor" data-category="level">
+                            <option value="0">Nenhum</option>
+                            <option value="9000">Nível 1 (R$ 9.000)</option>
+                            <option value="11760">Nível 2 (R$ 11.760)</option>
+                            <option value="13800">Nível 3 (R$ 13.800)</option>
+                            <option value="17400">Nível 4 (R$ 17.400)</option>
+                            <option value="22200">Nível 5 (R$ 22.200)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="item-row">
+                    <span class="item-name">Freio</span>
+                    <div class="item-controls">
+                        <select id="select-Freio" data-category="level">
+                            <option value="0">Nenhum</option>
+                            <option value="9600">Nível 1 (R$ 9.600)</option>
+                            <option value="11400">Nível 2 (R$ 11.400)</option>
+                            <option value="13200">Nível 3 (R$ 13.200)</option>
+                            <option value="17400">Nível 4 (R$ 17.400)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="item-row">
+                    <span class="item-name">Transmissão</span>
+                    <div class="item-controls">
+                        <select id="select-Transmissao" data-category="level">
+                            <option value="0">Nenhum</option>
+                            <option value="7200">Nível 1 (R$ 7.200)</option>
+                            <option value="9000">Nível 2 (R$ 9.000)</option>
+                            <option value="10800">Nível 3 (R$ 10.800)</option>
+                            <option value="13200">Nível 4 (R$ 13.200)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="item-row">
+                    <span class="item-name">Suspensão</span>
+                    <div class="item-controls">
+                        <select id="select-Suspensao" data-category="level">
+                            <option value="0">Nenhum</option>
+                            <option value="9000">Nível 1 (R$ 9.000)</option>
+                            <option value="11400">Nível 2 (R$ 11.400)</option>
+                            <option value="13800">Nível 3 (R$ 13.800)</option>
+                            <option value="17400">Nível 4 (R$ 17.400)</option>
+                            <option value="22200">Nível 5 (R$ 12.200)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="item-row">
+                    <span class="item-name">Blindagem</span>
+                    <div class="item-controls">
+                        <select id="select-Blindagem" data-category="level">
+                            <option value="0">Nenhum</option>
+                            <option value="13200">Nível 1 (R$ 13.200)</option>
+                            <option value="15000">Nível 2 (R$ 15.000)</option>
+                            <option value="19800">Nível 3 (R$ 19.800)</option>
+                            <option value="25800">Nível 4 (R$ 25.800)</option>
+                            <option value="32400">Nível 5 (R$ 32.400)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="item-row">
+                    <span class="item-name">Turbo (R$ 7.800) <span id="turboStatus" class="brinde-tag"></span></span>
+                    <div class="item-controls">
+                        <input type="checkbox" id="check-Turbo" data-price="7800" data-category="single">
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card" style="margin-top: 20px;">
+                <div class="section-header">
+                    <div class="icon"></div> <h2>Combos</h2>
+                </div>
+                <div class="item-row">
+                    <span class="item-name">Full Tuning (R$ 84.000)</span>
+                    <div class="item-controls">
+                        <input type="checkbox" id="check-FullTuning" data-price="84000" data-category="single">
+                    </div>
+                </div>
+                <div class="item-row">
+                    <span class="item-name">Full Tuning + Full Blindagem (R$ 116.400)</span>
+                    <div class="item-controls">
+                        <input type="checkbox" id="check-FullCombo" data-price="116400" data-category="single">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+
+<div class="section-card">
+            <div class="section-header">
+                <div class="icon"></div> <h2>Estética</h2>
+            </div>
+            
+            <div class="item-row">
+                <span class="item-name">Rodas (R$ 4.200)</span>
+                <div class="item-controls">
+                    <input type="checkbox" id="check-Rodas" data-price="4200" data-category="single">
+                </div>
+            </div>
+            <div class="item-row">
+                <span class="item-name">Cor das Rodas (R$ 1.400)</span>
+                <div class="item-controls">
+                    <input type="checkbox" id="check-CorRodas" data-price="1400" data-category="single">
+                </div>
+            </div>
+            <div class="item-row">
+                <span class="item-name">Cor da Fumaça (R$ 2.160)</span>
+                <div class="item-controls">
+                    <input type="checkbox" id="check-CorFumaca" data-price="2160" data-category="single">
+                </div>
+            </div>
+            <div class="item-row">
+                <span class="item-name">Insufilm / Película (R$ 1.440)</span>
+                <div class="item-controls">
+                    <input type="checkbox" id="check-Insufilm" data-price="1440" data-category="single">
+                </div>
+            </div>
+            <div class="item-row">
+                <span class="item-name">Neon (R$ 1.440)</span>
+                <div class="item-controls">
+                    <input type="checkbox" id="check-Neon" data-price="1440" data-category="single">
+                </div>
+            </div>
+            <div class="item-row">
+                <span class="item-name">Cor do Neon (R$ 1.440)</span>
+                <div class="item-controls">
+                    <input type="checkbox" id="check-CorNeon" data-price="1440" data-category="single">
+                </div>
+            </div>
+            <div class="item-row">
+                <span class="item-name">Xenon (R$ 1.440)</span>
+                <div class="item-controls">
+                    <input type="checkbox" id="check-Xenon" data-price="1440" data-category="single">
+                </div>
+            </div>
+            <div class="item-row">
+                <span class="item-name">Cor do Xenon (R$ 1.440)</span>
+                <div class="item-controls">
+                    <input type="checkbox" id="check-CorXenon" data-price="1440" data-category="single">
+                </div>
+            </div>
+            <div class="item-row">
+                <span class="item-name">Placa (R$ 3.000)</span>
+                <div class="item-controls">
+                    <input type="checkbox" id="check-Placa" data-price="3000" data-category="single">
+                </div>
+            </div>
+            <div class="item-row">
+                <span class="item-name">Buzina (R$ 1.800)</span>
+                <div class="item-controls">
+                    <input type="checkbox" id="check-Buzina" data-price="1800" data-category="single">
+                </div>
+            </div>
+            <div class="item-row">
+                <span class="item-name">Pintura (R$ 1.920 cada)</span>
+                <div class="item-controls quantity-control">
+                    <button type="button" onclick="changeQuantity('input-Pintura', -1)">−</button>
+                    <input type="number" id="input-Pintura" value="0" min="0" data-price="1920" data-category="quantity">
+                    <button type="button" onclick="changeQuantity('input-Pintura', 1)">+</button>
+                </div>
+            </div>
+            <div class="item-row">
+                <span class="item-name">Extras (R$ 1.800 cada)</span>
+                <div class="item-controls quantity-control">
+                    <button type="button" onclick="changeQuantity('input-Extras', -1)">−</button>
+                    <input type="number" id="input-Extras" value="0" min="0" data-price="1800" data-category="quantity">
+                    <button type="button" onclick="changeQuantity('input-Extras', 1)">+</button>
+                </div>
+            </div>
+            <div class="item-row">
+                <span class="item-name">Modificação não listada (R$ 1.800 cada)</span>
+                <div class="item-controls quantity-control">
+                    <button type="button" onclick="changeQuantity('input-ModNaoListada', -1)">−</button>
+                    <input type="number" id="input-ModNaoListada" value="0" min="0" data-price="1800" data-category="quantity">
+                    <button type="button" onclick="changeQuantity('input-ModNaoListada', 1)">+</button>
+                </div>
+            </div>
+        </div>
+
+        
+
+<div>
+            <div class="section-card">
+                <div class="section-header">
+                    <div class="icon"></div> <h2>Serviços</h2>
+                </div>
+                
+                <div class="item-row">
+                    <span class="item-name">Atendimento Externo - Sul (R$ 700)</span>
+                    <div class="item-controls">
+                        <input type="checkbox" id="check-AtendimentoSul" data-price="700" data-category="single">
+                    </div>
+                </div>
+                <div class="item-row">
+                    <span class="item-name">Atendimento Externo - Norte (R$ 1.200)</span>
+                    <div class="item-controls">
+                        <input type="checkbox" id="check-AtendimentoNorte" data-price="1200" data-category="single">
+                    </div>
+                </div>
+                <div class="item-row">
+                    <span class="item-name">Kit Drift / Suspensão Coillover (R$ 15.600)</span>
+                    <div class="item-controls">
+                        <input type="checkbox" id="check-KitDrift" data-price="15600" data-category="single">
+                    </div>
+                </div>
+                <div class="item-row">
+                    <span class="item-name">Reparo / Conserto (R$ 500 cada)</span>
+                    <div class="item-controls quantity-control">
+                        <button type="button" onclick="changeQuantity('input-Reparo', -1)">−</button>
+                        <input type="number" id="input-Reparo" value="0" min="0" data-price="500" data-category="quantity">
+                        <button type="button" onclick="changeQuantity('input-Reparo', 1)">+</button>
+                    </div>
+                </div>
+                <div class="item-row">
+                    <span class="item-name">Troca de Pneu (R$ 250 cada)</span>
+                    <div class="item-controls quantity-control">
+                        <button type="button" onclick="changeQuantity('input-PneuServico', -1)">−</button>
+                        <input type="number" id="input-PneuServico" value="0" min="0" data-price="250" data-category="quantity">
+                        <button type="button" onclick="changeQuantity('input-PneuServico', 1)">+</button>
+                    </div>
+                </div>
+                <div class="item-row">
+                    <span class="item-name">Rastreador (R$ 15.600 cada)</span>
+                    <div class="item-controls quantity-control">
+                        <button type="button" onclick="changeQuantity('input-Rastreador', -1)">−</button>
+                        <input type="number" id="input-Rastreador" value="0" min="0" data-price="15600" data-category="quantity">
+                        <button type="button" onclick="changeQuantity('input-Rastreador', 1)">+</button>
+                    </div>
+                </div>
+                <div class="item-row">
+                    <span class="item-name">Nitro (R$ 9.600 cada)</span>
+                    <div class="item-controls quantity-control">
+                        <button type="button" onclick="changeQuantity('input-Nitro', -1)">−</button>
+                        <input type="number" id="input-Nitro" value="0" min="0" data-price="9600" data-category="quantity">
+                        <button type="button" onclick="changeQuantity('input-Nitro', 1)">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card" style="margin-top: 20px;">
+                <div class="section-header">
+                    <div class="icon"></div> <h2>Vendas</h2>
+                </div>
+                <div class="item-row">
+                    <span class="item-name">Kit de Reparo (R$ 500 cada)</span>
+                    <div class="item-controls quantity-control">
+                        <button type="button" onclick="changeQuantity('input-KitReparo', -1)">−</button>
+                        <input type="number" id="input-KitReparo" value="0" min="0" data-price="500" data-category="quantity">
+                        <button type="button" onclick="changeQuantity('input-KitReparo', 1)">+</button>
+                    </div>
+                </div>
+                <div class="item-row">
+                    <span class="item-name">Pneu (R$ 250 cada)</span>
+                    <div class="item-controls quantity-control">
+                        <button type="button" onclick="changeQuantity('input-PneuVenda', -1)">−</button>
+                        <input type="number" id="input-PneuVenda" value="0" min="0" data-price="250" data-category="quantity">
+                        <button type="button" onclick="changeQuantity('input-PneuVenda', 1)">+</button>
+                    </div>
+                </div>
+                <div class="item-row">
+                    <span class="item-name">Chave de Roda (R$ 960 cada)</span>
+                    <div class="item-controls quantity-control">
+                        <button type="button" onclick="changeQuantity('input-ChaveRoda', -1)">−</button>
+                        <input type="number" id="input-ChaveRoda" value="0" min="0" data-price="960" data-category="quantity">
+                        <button type="button" onclick="changeQuantity('input-ChaveRoda', 1)">+</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+<p>Desenvolvido por <a href="#" target="_blank">Higor Cabral</a> 🚀</p>
+
+    </footer>
+
+</div>
+
+<script>
+    // ** Lógica JavaScript **
+
+    // Valores para definição visual do Nível Máximo
+    const MAX_LEVELS = {
+        'select-Motor': '22200',
+        'select-Freio': '17400',
+        'select-Transmissao': '13200',
+        'select-Suspensao': '12000',
+        'select-Blindagem': '32400', 
+    };
+    
+    // Valores de PREÇO Máximo para cálculo de CRÉDITO/DÉBITO (Hybrid Pricing)
+    const MAX_PRICES = {
+        'select-Motor': 22200,
+        'select-Freio': 17400,
+        'select-Transmissao': 13200,
+        'select-Suspensao': 12000,
+        'select-Blindagem': 32400,
+        'check-Turbo': 7800,
+    };
+    
+    // Lista de IDs dos selects de Performance
+    const performanceSelects = ['select-Motor', 'select-Freio', 'select-Transmissao', 'select-Suspensao', 'select-Blindagem'];
+
+    function formatCurrency(number) {
+        return new Intl.NumberFormat('pt-BR', {
+            style: 'currency',
+            currency: 'BRL'
+        }).format(number);
+    }
+
+    // FUNÇÃO: Aplica ou remove os Níveis Máximos para refletir a compra do Combo (Visual)
+    function applyFullTuning(comboId, isChecked) {
+        
+        const levelUpgrades = performanceSelects.map(id => document.getElementById(id));
+        const turboCheck = document.getElementById('check-Turbo');
+        const blindagemSelect = document.getElementById('select-Blindagem');
+        
+        if (isChecked) {
+            // Forçamos os níveis máximos VISUALMENTE
+            levelUpgrades.forEach(select => {
+                select.value = MAX_LEVELS[select.id];
+            });
+            
+            // AJUSTE VISUAL CRÍTICO: Turbo e Blindagem CONDICIONAIS
+            if (comboId === 'check-FullCombo') {
+                if (turboCheck) turboCheck.checked = true; // Marca Turbo
+                if (blindagemSelect) blindagemSelect.value = MAX_LEVELS['select-Blindagem']; // Marca Blindagem
+            } else {
+                // Se for Full Tuning Simples (R$ 84.000):
+                if (turboCheck) turboCheck.checked = false; // Desmarca Turbo
+                if (blindagemSelect) blindagemSelect.value = '0'; // Desmarca Blindagem
+            }
+
+        } else {
+            // Ao desmarcar o Combo (e não houver outro ativo), resetamos para 'Nenhum'
+            const isAnyComboStillActive = document.getElementById('check-FullTuning').checked || document.getElementById('check-FullCombo').checked;
+            
+            if (!isAnyComboStillActive) {
+                levelUpgrades.forEach(select => {
+                    select.value = '0';
+                });
+
+                if (turboCheck) {
+                    turboCheck.checked = false;
+                }
+            }
+        }
+        
+        // Atualiza a tag 'Brinde'
+        updateVisualStatus();
+    }
+    
+    // NOVA FUNÇÃO: Atualiza o texto visual de "Brinde"
+    function updateVisualStatus() {
+        const isFullComboActive = document.getElementById('check-FullCombo').checked;
+        const turboStatusSpan = document.getElementById('turboStatus');
+        
+        if (isFullComboActive) {
+            turboStatusSpan.textContent = "🎁 Brinde";
+        } else {
+            turboStatusSpan.textContent = "";
+        }
+    }
+
+
+    // FUNÇÃO: Desmarca o outro combo e inicia o cálculo
+    function handleComboSelection(clickedComboId) {
+        const fullTuningCheck = document.getElementById('check-FullTuning');
+        const fullComboCheck = document.getElementById('check-FullCombo');
+        
+        const isChecked = document.getElementById(clickedComboId).checked;
+
+        if (isChecked) {
+            // Garante exclusividade de seleção
+            if (clickedComboId === 'check-FullTuning' && fullComboCheck.checked) {
+                fullComboCheck.checked = false;
+            } else if (clickedComboId === 'check-FullCombo' && fullTuningCheck.checked) {
+                fullTuningCheck.checked = false;
+            }
+            
+            // APLICA o Nível Máximo VISUALMENTE (passando o ID do combo)
+            applyFullTuning(clickedComboId, true);
+        } else {
+            // Remove o Nível Máximo VISUALMENTE
+            applyFullTuning(clickedComboId, false); 
+        }
+
+        calculateTotal();
+    }
+    
+    // FUNÇÃO: Disparador geral de cálculo (para itens individuais)
+    function overrideCombo(event) {
+        calculateTotal();
+    }
+
+
+    function calculateTotal() {
+        let subtotal = 0;
+
+        // 1. DETERMINAÇÃO DA CONDIÇÃO DE COBRANÇA
+        const isFullTuning = document.getElementById('check-FullTuning').checked;
+        const isFullCombo = document.getElementById('check-FullCombo').checked;
+        const isComboActive = isFullTuning || isFullCombo; // Flag que decide o modo de cálculo
+
+        
+        // 2. INCLUIR ITENS NÃO PERFORMANCE (Estética, Serviços, Vendas)
+        
+        // ... (Itens não performance) ...
+        document.querySelectorAll('[data-category="level"]').forEach(select => {
+            const isPerformanceItem = performanceSelects.includes(select.id);
+            if (!isPerformanceItem) {
+                subtotal += parseFloat(select.value || 0);
+            }
+        });
+        document.querySelectorAll('[data-category="single"]').forEach(checkbox => {
+            if (!checkbox.checked) return;
+            const isCombo = checkbox.id === 'check-FullTuning' || checkbox.id === 'check-FullCombo';
+            const isPerformance = checkbox.id === 'check-Turbo'; 
+            if (!isCombo && !isPerformance) {
+                subtotal += parseFloat(checkbox.dataset.price);
+            }
+        });
+        document.querySelectorAll('[data-category="quantity"]').forEach(input => {
+            const quantity = Math.max(0, parseInt(input.value || 0)); 
+            const price = parseFloat(input.dataset.price);
+            subtotal += quantity * price;
+        });
+
+
+        // 3. CÁLCULO PERFORMANCE (MODO HÍBRIDO OU MODO INDIVIDUAL)
+
+        if (isComboActive) {
+            // 🎯 MODO HÍBRIDO (Preço fixo com ajuste de crédito/débito)
+
+            if (isFullTuning) subtotal += 84000;
+            if (isFullCombo) subtotal += 116400;
+            
+            const activeComboId = isFullTuning ? 'check-FullTuning' : 'check-FullCombo';
+
+            // Lista de itens de Performance cobertos pelo preço fixo (Motor, Freio, Transmissão, Suspensão)
+            const baseLevelItems = ['select-Motor', 'select-Freio', 'select-Transmissao', 'select-Suspensao'];
+            
+            // Adiciona Blindagem e Turbo aos itens cobertos SOMENTE se for o Full Combo
+            const coveredItems = [...baseLevelItems];
+            if (activeComboId === 'check-FullCombo') {
+                coveredItems.push('select-Blindagem', 'check-Turbo');
+            }
+            
+            // Itera sobre todos os itens de Performance (Level Selects + Turbo Checkbox)
+            [...performanceSelects, 'check-Turbo'].forEach(itemId => {
+                const element = document.getElementById(itemId);
+
+                if (coveredItems.includes(itemId)) {
+                    // Item coberto pelo Combo -> Calcula o crédito/débito
+                    if (element.tagName === 'SELECT') {
+                        const maxPrice = MAX_PRICES[itemId];
+                        const currentPrice = parseFloat(element.value || 0);
+                        subtotal += (currentPrice - maxPrice); // Ajuste
+                    } else if (element.type === 'checkbox' && !element.checked) { // Turbo desmarcado no Full Combo
+                        subtotal -= MAX_PRICES[itemId];
+                    }
+                } else {
+                    // Item NÃO coberto pelo Combo (Ex: Turbo/Blindagem no Full Tuning R$ 84k) -> Cobra individualmente
+                    if (element.tagName === 'SELECT') {
+                         subtotal += parseFloat(element.value || 0);
+                    } else if (element.type === 'checkbox' && element.checked) {
+                         subtotal += MAX_PRICES[itemId];
+                    }
+                }
+            });
+
+        } else {
+            // 🎯 MODO INDIVIDUAL (Soma simples dos itens de Performance)
+
+            // Níveis
+            document.querySelectorAll('[data-category="level"]').forEach(select => {
+                if (performanceSelects.includes(select.id)) {
+                    subtotal += parseFloat(select.value || 0);
+                }
+            });
+
+            // Turbo
+            const turboCheck = document.getElementById('check-Turbo');
+            if (turboCheck && turboCheck.checked) {
+                subtotal += MAX_PRICES['check-Turbo'];
+            }
+        }
+
+
+        // 4. Aplicar Desconto (Apenas em Vendas)
+        const totalVendas = (
+            (parseInt(document.getElementById('input-KitReparo').value || 0) * 500) +
+            (parseInt(document.getElementById('input-PneuVenda').value || 0) * 250) +
+            (parseInt(document.getElementById('input-ChaveRoda').value || 0) * 960)
+        );
+
+        const descontoPercentual = parseFloat(document.getElementById('discountInput').value || 0) / 100;
+        let valorDesconto = totalVendas * descontoPercentual;
+        
+        valorDesconto = Math.round(valorDesconto * 100) / 100;
+
+        let totalFinal = subtotal - valorDesconto;
+        
+        totalFinal = Math.round(totalFinal * 100) / 100;
+
+        // 5. ATUALIZAÇÃO VISUAL (Brinde)
+        updateVisualStatus();
+        
+        // Atualizar o display
+        document.getElementById('totalDisplay').textContent = formatCurrency(totalFinal);
+    }
+
+    // Função auxiliar para mudar a quantidade (botões +/-)
+    function changeQuantity(inputId, delta) {
+        const input = document.getElementById(inputId);
+        let currentValue = parseInt(input.value) || 0;
+        let newValue = currentValue + delta;
+        if (newValue < 0) newValue = 0;
+        input.value = newValue;
+        
+        const event = new Event('change');
+        input.dispatchEvent(event);
+    }
+
+    // Função para limpar todos os inputs
+    function clearInputs() {
+        document.querySelectorAll('select').forEach(select => {
+            select.value = '0';
+        });
+
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            checkbox.checked = false;
+        });
+
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            input.value = '0';
+        });
+
+        calculateTotal();
+    }
+
+    // Inicialização: Adicionar listeners e calcular o total inicial
+    document.addEventListener('DOMContentLoaded', () => {
+        const controls = document.querySelectorAll('select, input[type="checkbox"], input[type="number"]');
+        
+        controls.forEach(control => {
+            control.addEventListener('change', overrideCombo); 
+            if (control.type === 'number') {
+                control.addEventListener('input', overrideCombo);
+            }
+        });
+
+        document.getElementById('check-FullTuning').addEventListener('change', function() {
+            handleComboSelection('check-FullTuning');
+        });
+        document.getElementById('check-FullCombo').addEventListener('change', function() {
+            handleComboSelection('check-FullCombo');
+        });
+        
+        document.getElementById('check-FullTuning').removeEventListener('change', overrideCombo);
+        document.getElementById('check-FullCombo').removeEventListener('change', overrideCombo);
+        
+        
+        // Adicionar listener ao botão Limpar
+        document.getElementById('clearBtn').addEventListener('click', clearInputs);
+
+        // Listener para o input de desconto
+        document.getElementById('discountInput').addEventListener('change', function() {
+            document.getElementById('discountPercentage').textContent = this.value;
+            calculateTotal();
+        });
+
+        calculateTotal();
+    });
+</script>
